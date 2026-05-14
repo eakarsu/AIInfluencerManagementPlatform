@@ -15,14 +15,19 @@ export default function Influencers() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
+
   const fetchData = () => {
     setLoading(true);
-    api.get('/influencers').then(r => setItems(r.data.data || r.data || []))
+    api.get(`/influencers?page=${page}&limit=${limit}`)
+      .then(r => { setItems(r.data.data || r.data || []); setTotalPages(r.data.pagination?.totalPages || 1); })
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [page]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -173,6 +178,14 @@ export default function Influencers() {
           </table>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+          <button className="btn btn-secondary btn-sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+          <span style={{ padding: '6px 12px', fontSize: 14 }}>Page {page} of {totalPages}</span>
+          <button className="btn btn-secondary btn-sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+        </div>
+      )}
 
       {showForm && (
         <div className="modal-overlay" onClick={() => { setShowForm(false); setEditing(false); }}>

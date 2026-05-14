@@ -5,11 +5,25 @@ import { authenticateToken } from '../middleware/auth.js';
 const router = Router();
 router.use(authenticateToken);
 
-// GET all analytics
+// GET all analytics with pagination
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM analytics ORDER BY created_at DESC');
-    res.json(result.rows);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const countResult = await pool.query('SELECT COUNT(*) FROM analytics');
+    const total = parseInt(countResult.rows[0].count);
+
+    const result = await pool.query(
+      'SELECT * FROM analytics ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
+    );
+
+    if (!req.query.page && !req.query.limit) {
+      return res.json(result.rows);
+    }
+    res.json({ data: result.rows, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (err) {
     console.error('Get analytics error:', err);
     res.status(500).json({ error: 'Server error' });

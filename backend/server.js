@@ -1,5 +1,17 @@
+
+// === Batch 04 Gaps & Frontend Mounts ===
+import route_gap_no_audience_segmentation_ai_audiencejs_i from './routes/gap-no-audience-segmentation-ai-audiencejs-i.js';
+import route_gap_no_performance_prediction_model from './routes/gap-no-performance-prediction-model.js';
+import route_gap_no_fake_follower_fraud_detector from './routes/gap-no-fake-follower-fraud-detector.js';
+import route_gap_no_content_calendar_trend_ai from './routes/gap-no-content-calendar-trend-ai.js';
+import route_gap_live_social_media_api_integrations_are from './routes/gap-live-social-media-api-integrations-are.js';
+import route_gap_no_webhook_receivers_for_engagement_even from './routes/gap-no-webhook-receivers-for-engagement-even.js';
+import route_gap_no_file_upload_for_content_briefs from './routes/gap-no-file-upload-for-content-briefs.js';
+import route_gap_no_notification_engine_0_references from './routes/gap-no-notification-engine-0-references.js';
+import route_gap_no_e_signature_for_contracts from './routes/gap-no-e-signature-for-contracts.js';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,6 +19,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
+import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import influencerRoutes from './routes/influencers.js';
 import campaignRoutes from './routes/campaigns.js';
@@ -22,12 +35,34 @@ import competitorRoutes from './routes/competitors.js';
 import benchmarkRoutes from './routes/benchmarks.js';
 import dashboardRoutes from './routes/dashboard.js';
 import roiRoutes from './routes/roi.js';
+// Apply pass 5 — additive
+import contractTemplateRoutes from './routes/contractTemplates.js';
+import messagingRoutes from './routes/messaging.js';
+import marketplaceRoutes from './routes/marketplace.js';
+import integrationRoutes from './routes/integrations.js';
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
 
-app.use(cors());
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
+
+// Create ai_results table on startup
+pool.query(`
+  CREATE TABLE IF NOT EXISTS ai_results (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    tool_name TEXT,
+    entity_id INTEGER,
+    result JSONB,
+    raw_response TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+  )
+`).catch(e => console.error('ai_results table creation error:', e.message));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -45,10 +80,28 @@ app.use('/api/competitors', competitorRoutes);
 app.use('/api/benchmarks', benchmarkRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/roi', roiRoutes);
+// Apply pass 5
+app.use('/api/contract-templates', contractTemplateRoutes);
+app.use('/api/messaging', messagingRoutes);
+app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/integrations', integrationRoutes);
+import('./routes/fakeFollowerDetector.js').then(m => app.use('/api/fake-follower-detector', m.default));
+import('./routes/microInfluencerDiscovery.js').then(m => app.use('/api/micro-influencer-discovery', m.default));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+
+app.use('/api/gap-no-audience-segmentation-ai-audiencejs-i', route_gap_no_audience_segmentation_ai_audiencejs_i);
+app.use('/api/gap-no-performance-prediction-model', route_gap_no_performance_prediction_model);
+app.use('/api/gap-no-fake-follower-fraud-detector', route_gap_no_fake_follower_fraud_detector);
+app.use('/api/gap-no-content-calendar-trend-ai', route_gap_no_content_calendar_trend_ai);
+app.use('/api/gap-live-social-media-api-integrations-are', route_gap_live_social_media_api_integrations_are);
+app.use('/api/gap-no-webhook-receivers-for-engagement-even', route_gap_no_webhook_receivers_for_engagement_even);
+app.use('/api/gap-no-file-upload-for-content-briefs', route_gap_no_file_upload_for_content_briefs);
+app.use('/api/gap-no-notification-engine-0-references', route_gap_no_notification_engine_0_references);
+app.use('/api/gap-no-e-signature-for-contracts', route_gap_no_e_signature_for_contracts);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);

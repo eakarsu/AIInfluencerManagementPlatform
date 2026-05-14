@@ -16,11 +16,30 @@ import Contracts from './pages/Contracts';
 import Payments from './pages/Payments';
 import Brands from './pages/Brands';
 import AITools from './pages/AITools';
+import AdvancedAITools from './pages/AdvancedAITools';
 import Outreach from './pages/Outreach';
 import AudienceInsights from './pages/AudienceInsights';
 import Competitors from './pages/Competitors';
 import Benchmarks from './pages/Benchmarks';
 import ROICalculator from './pages/ROICalculator';
+import Pass5Tools from './pages/Pass5Tools';
+
+// === Batch 04 Gaps & Frontend Mounts ===
+import CfAgenticCampaignManagerAutonomouslyDi from './pages/CfAgenticCampaignManagerAutonomouslyDi';
+import CfInfluencerLtvPredictionRecommendingL from './pages/CfInfluencerLtvPredictionRecommendingL';
+import CfAudienceOverlapDetectionRecommending from './pages/CfAudienceOverlapDetectionRecommending';
+import CfTrendContentCalendarAiPredictingTop from './pages/CfTrendContentCalendarAiPredictingTop';
+import CfFakeFollowerDetectionScoringEngageme from './pages/CfFakeFollowerDetectionScoringEngageme';
+import CfMicroInfluencerDiscoveryFlaggingEmer from './pages/CfMicroInfluencerDiscoveryFlaggingEmer';
+import GapNoAudienceSegmentationAiAudiencejsI from './pages/GapNoAudienceSegmentationAiAudiencejsI';
+import GapNoPerformancePredictionModel from './pages/GapNoPerformancePredictionModel';
+import GapNoFakeFollowerFraudDetector from './pages/GapNoFakeFollowerFraudDetector';
+import GapNoContentCalendarTrendAi from './pages/GapNoContentCalendarTrendAi';
+import GapLiveSocialMediaApiIntegrationsAre from './pages/GapLiveSocialMediaApiIntegrationsAre';
+import GapNoWebhookReceiversForEngagementEven from './pages/GapNoWebhookReceiversForEngagementEven';
+import GapNoFileUploadForContentBriefs from './pages/GapNoFileUploadForContentBriefs';
+import GapNoNotificationEngine0References from './pages/GapNoNotificationEngine0References';
+import GapNoESignatureForContracts from './pages/GapNoESignatureForContracts';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -66,6 +85,7 @@ const navSections = [
     title: 'AI',
     items: [
       { path: '/ai-tools', label: 'AI Tools', icon: Bot },
+      { path: '/advanced-ai', label: 'Advanced AI', icon: Bot },
     ]
   },
 ];
@@ -80,6 +100,7 @@ const pageTitles = {
   '/payments': 'Payments',
   '/brands': 'Brands',
   '/ai-tools': 'AI Tools',
+  '/advanced-ai': 'Advanced AI',
   '/outreach': 'Outreach',
   '/audience-insights': 'Audience Insights',
   '/competitors': 'Competitors',
@@ -168,11 +189,30 @@ function AppLayout() {
             <Route path="/payments" element={<Payments />} />
             <Route path="/brands" element={<Brands />} />
             <Route path="/ai-tools" element={<AITools />} />
+            <Route path="/advanced-ai" element={<AdvancedAITools />} />
             <Route path="/outreach" element={<Outreach />} />
             <Route path="/audience-insights" element={<AudienceInsights />} />
             <Route path="/competitors" element={<Competitors />} />
             <Route path="/benchmarks" element={<Benchmarks />} />
             <Route path="/roi-calculator" element={<ROICalculator />} />
+            <Route path="/pass5-tools" element={<Pass5Tools />} />
+          {/* // === Batch 04 Gaps & Frontend Mounts === */}
+          <Route path="/cf-agentic-campaign-manager-autonomously-di" element={<CfAgenticCampaignManagerAutonomouslyDi />} />
+          <Route path="/cf-influencer-ltv-prediction-recommending-l" element={<CfInfluencerLtvPredictionRecommendingL />} />
+          <Route path="/cf-audience-overlap-detection-recommending-" element={<CfAudienceOverlapDetectionRecommending />} />
+          <Route path="/cf-trend-content-calendar-ai-predicting-top" element={<CfTrendContentCalendarAiPredictingTop />} />
+          <Route path="/cf-fake-follower-detection-scoring-engageme" element={<CfFakeFollowerDetectionScoringEngageme />} />
+          <Route path="/cf-micro-influencer-discovery-flagging-emer" element={<CfMicroInfluencerDiscoveryFlaggingEmer />} />
+          <Route path="/gap-no-audience-segmentation-ai-audiencejs-i" element={<GapNoAudienceSegmentationAiAudiencejsI />} />
+          <Route path="/gap-no-performance-prediction-model" element={<GapNoPerformancePredictionModel />} />
+          <Route path="/gap-no-fake-follower-fraud-detector" element={<GapNoFakeFollowerFraudDetector />} />
+          <Route path="/gap-no-content-calendar-trend-ai" element={<GapNoContentCalendarTrendAi />} />
+          <Route path="/gap-live-social-media-api-integrations-are" element={<GapLiveSocialMediaApiIntegrationsAre />} />
+          <Route path="/gap-no-webhook-receivers-for-engagement-even" element={<GapNoWebhookReceiversForEngagementEven />} />
+          <Route path="/gap-no-file-upload-for-content-briefs" element={<GapNoFileUploadForContentBriefs />} />
+          <Route path="/gap-no-notification-engine-0-references" element={<GapNoNotificationEngine0References />} />
+          <Route path="/gap-no-e-signature-for-contracts" element={<GapNoESignatureForContracts />} />
+
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </div>

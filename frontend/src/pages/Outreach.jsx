@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, ArrowLeft, Edit3, Trash2, X, Send } from 'lucide-react';
+import { Search, Plus, ArrowLeft, Edit3, Trash2, X, Send, Bell, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../api';
 
 const emptyForm = { influencer: '', brand: '', campaign: '', type: 'Email', status: 'Pending', subject: '', message: '', sent_date: '', response_date: '', notes: '' };
@@ -16,9 +16,46 @@ export default function Outreach() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const fetchData = () => { setLoading(true); api.get('/outreach').then(r => setItems(r.data.data || r.data || [])).catch(() => setItems([])).finally(() => setLoading(false)); };
-  useEffect(() => { fetchData(); }, []);
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 20;
+
+  // Follow-ups
+  const [followUps, setFollowUps] = useState([]);
+  const [followUpsLoading, setFollowUpsLoading] = useState(false);
+  const [showFollowUps, setShowFollowUps] = useState(false);
+
+  const fetchData = () => {
+    setLoading(true);
+    api.get(`/outreach?page=${page}&limit=${limit}`)
+      .then(r => {
+        setItems(r.data.data || r.data || []);
+        setTotalPages(r.data.pagination?.totalPages || 1);
+      })
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchData(); }, [page]);
+
   const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+
+  const loadFollowUps = async () => {
+    setFollowUpsLoading(true);
+    try {
+      const res = await api.get('/outreach/follow-ups-due');
+      setFollowUps(res.data.data || []);
+      setShowFollowUps(true);
+    } catch (err) {
+      if (err.response?.status === 429) {
+        showToast('AI rate limit reached. Please wait.', 'error');
+      } else {
+        showToast('Failed to load follow-ups', 'error');
+      }
+    }
+    setFollowUpsLoading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +66,10 @@ export default function Outreach() {
     } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error'); }
   };
 
-  const handleDelete = async () => { try { await api.delete(`/outreach/${confirmDelete._id || confirmDelete.id}`); showToast('Deleted'); setConfirmDelete(null); setSelected(null); fetchData(); } catch { showToast('Failed', 'error'); } };
+  const handleDelete = async () => {
+    try { await api.delete(`/outreach/${confirmDelete._id || confirmDelete.id}`); showToast('Deleted'); setConfirmDelete(null); setSelected(null); fetchData(); }
+    catch { showToast('Failed', 'error'); }
+  };
 
   const openEdit = (item) => {
     setForm({ influencer: item.influencer||'', brand: item.brand||'', campaign: item.campaign||'', type: item.type||'Email', status: item.status||'Pending', subject: item.subject||'', message: item.message||'', sent_date: item.sent_date ? item.sent_date.slice(0,10) : '', response_date: item.response_date ? item.response_date.slice(0,10) : '', notes: item.notes||'' });
@@ -71,6 +111,59 @@ export default function Outreach() {
 
   return (
     <div>
+      {/* Follow-ups Due Section */}
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Bell size={18} style={{ color: followUps.length > 0 ? 'var(--warning, #f59e0b)' : 'var(--text-secondary)' }} />
+            <span style={{ fontWeight: 600 }}>Follow-ups Due</span>
+            {followUps.length > 0 && (
+              <span style={{ padding: '2px 8px', background: '#f59e0b', color: 'white', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
+                {followUps.length}
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary btn-sm" onClick={loadFollowUps} disabled={followUpsLoading}>
+              {followUpsLoading ? 'Loading...' : 'Review Follow-ups'}
+            </button>
+            {showFollowUps && followUps.length > 0 && (
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowFollowUps(f => !f)}>
+                {showFollowUps ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {showFollowUps && followUps.length > 0 && (
+          <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
+            {followUps.map(fu => (
+              <div key={fu.outreach_id} style={{ padding: 16, background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: 15 }}>{fu.influencer_name}</span>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>Outreach #{fu.outreach_id}</div>
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => showToast('Message sent!', 'success')}>
+                    <Send size={12} /> Send
+                  </button>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>SUGGESTED FOLLOW-UP</div>
+                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, padding: 12, background: '#f0fdf4', borderRadius: 6, borderLeft: '3px solid #22c55e' }}>{fu.suggested_followup}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showFollowUps && followUps.length === 0 && (
+          <div style={{ marginTop: 12, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+            No follow-ups due. All outreach is up to date.
+          </div>
+        )}
+      </div>
+
       <div className="table-container">
         <div className="table-header">
           <h3>Outreach ({filtered.length})</h3>
@@ -91,6 +184,15 @@ export default function Outreach() {
               <td>{item.sent_date ? new Date(item.sent_date).toLocaleDateString() : 'N/A'}</td>
             </tr>))}</tbody></table>}
       </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+          <button className="btn btn-secondary btn-sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+          <span style={{ padding: '6px 12px', fontSize: 14 }}>Page {page} of {totalPages}</span>
+          <button className="btn btn-secondary btn-sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
+        </div>
+      )}
+
       {showForm && (
         <div className="modal-overlay" onClick={() => { setShowForm(false); setEditing(false); }}><div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header"><h3>{editing ? 'Edit' : 'New'} Outreach</h3><button className="modal-close" onClick={() => { setShowForm(false); setEditing(false); }}><X size={18} /></button></div>
