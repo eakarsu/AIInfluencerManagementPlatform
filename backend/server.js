@@ -40,6 +40,7 @@ import contractTemplateRoutes from './routes/contractTemplates.js';
 import messagingRoutes from './routes/messaging.js';
 import marketplaceRoutes from './routes/marketplace.js';
 import integrationRoutes from './routes/integrations.js';
+import customViewsRoutes from './routes/customViews.js';
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
@@ -102,6 +103,14 @@ app.use('/api/gap-no-webhook-receivers-for-engagement-even', route_gap_no_webhoo
 app.use('/api/gap-no-file-upload-for-content-briefs', route_gap_no_file_upload_for_content_briefs);
 app.use('/api/gap-no-notification-engine-0-references', route_gap_no_notification_engine_0_references);
 app.use('/api/gap-no-e-signature-for-contracts', route_gap_no_e_signature_for_contracts);
+
+// Mount custom views BEFORE any 404 fallback
+app.use('/api/custom-views', customViewsRoutes);
+
+// 404 fallback for unmatched /api routes
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'Not found', path: req.originalUrl });
+});
 
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);

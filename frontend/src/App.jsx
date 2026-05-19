@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, NavLink, useNavigate, useLocation } from 'reac
 import {
   LayoutDashboard, Users, Megaphone, Calendar, BarChart3, FileText,
   CreditCard, Building2, Bot, Send, Eye, Swords, Trophy, Calculator,
-  LogOut, Bell, Search
+  LogOut, Bell, Search, PieChart
 } from 'lucide-react';
 
 import Login from './pages/Login';
@@ -23,6 +23,7 @@ import Competitors from './pages/Competitors';
 import Benchmarks from './pages/Benchmarks';
 import ROICalculator from './pages/ROICalculator';
 import Pass5Tools from './pages/Pass5Tools';
+import CustomViewsPage from './pages/CustomViewsPage';
 
 // === Batch 04 Gaps & Frontend Mounts ===
 import CfAgenticCampaignManagerAutonomouslyDi from './pages/CfAgenticCampaignManagerAutonomouslyDi';
@@ -79,6 +80,7 @@ const navSections = [
       { path: '/competitors', label: 'Competitors', icon: Swords },
       { path: '/benchmarks', label: 'Benchmarks', icon: Trophy },
       { path: '/roi-calculator', label: 'ROI Calculator', icon: Calculator },
+      { path: '/custom-views', label: 'Campaign Views', icon: PieChart },
     ]
   },
   {
@@ -106,6 +108,7 @@ const pageTitles = {
   '/competitors': 'Competitors',
   '/benchmarks': 'Benchmarks',
   '/roi-calculator': 'ROI Calculator',
+  '/custom-views': 'Campaign Views',
 };
 
 function AppLayout() {
@@ -196,6 +199,7 @@ function AppLayout() {
             <Route path="/benchmarks" element={<Benchmarks />} />
             <Route path="/roi-calculator" element={<ROICalculator />} />
             <Route path="/pass5-tools" element={<Pass5Tools />} />
+            <Route path="/custom-views" element={<CustomViewsPage />} />
           {/* // === Batch 04 Gaps & Frontend Mounts === */}
           <Route path="/cf-agentic-campaign-manager-autonomously-di" element={<CfAgenticCampaignManagerAutonomouslyDi />} />
           <Route path="/cf-influencer-ltv-prediction-recommending-l" element={<CfInfluencerLtvPredictionRecommendingL />} />
