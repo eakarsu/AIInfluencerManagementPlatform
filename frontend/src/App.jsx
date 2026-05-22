@@ -24,6 +24,7 @@ import Benchmarks from './pages/Benchmarks';
 import ROICalculator from './pages/ROICalculator';
 import Pass5Tools from './pages/Pass5Tools';
 import CustomViewsPage from './pages/CustomViewsPage';
+import BrandSafetyClauseMonitor from './pages/BrandSafetyClauseMonitor';
 
 // === Batch 04 Gaps & Frontend Mounts ===
 import CfAgenticCampaignManagerAutonomouslyDi from './pages/CfAgenticCampaignManagerAutonomouslyDi';
@@ -41,6 +42,9 @@ import GapNoWebhookReceiversForEngagementEven from './pages/GapNoWebhookReceiver
 import GapNoFileUploadForContentBriefs from './pages/GapNoFileUploadForContentBriefs';
 import GapNoNotificationEngine0References from './pages/GapNoNotificationEngine0References';
 import GapNoESignatureForContracts from './pages/GapNoESignatureForContracts';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -81,6 +85,7 @@ const navSections = [
       { path: '/benchmarks', label: 'Benchmarks', icon: Trophy },
       { path: '/roi-calculator', label: 'ROI Calculator', icon: Calculator },
       { path: '/custom-views', label: 'Campaign Views', icon: PieChart },
+      { path: '/brand-safety-clause-monitor', label: 'Brand Safety Clauses', icon: Bell },
     ]
   },
   {
@@ -109,6 +114,7 @@ const pageTitles = {
   '/benchmarks': 'Benchmarks',
   '/roi-calculator': 'ROI Calculator',
   '/custom-views': 'Campaign Views',
+  '/brand-safety-clause-monitor': 'Brand Safety Clauses',
 };
 
 function AppLayout() {
@@ -183,6 +189,9 @@ function AppLayout() {
 
         <div className="page-content">
           <Routes>
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/influencers" element={<Influencers />} />
             <Route path="/campaigns" element={<Campaigns />} />
@@ -200,6 +209,7 @@ function AppLayout() {
             <Route path="/roi-calculator" element={<ROICalculator />} />
             <Route path="/pass5-tools" element={<Pass5Tools />} />
             <Route path="/custom-views" element={<CustomViewsPage />} />
+            <Route path="/brand-safety-clause-monitor" element={<BrandSafetyClauseMonitor />} />
           {/* // === Batch 04 Gaps & Frontend Mounts === */}
           <Route path="/cf-agentic-campaign-manager-autonomously-di" element={<CfAgenticCampaignManagerAutonomouslyDi />} />
           <Route path="/cf-influencer-ltv-prediction-recommending-l" element={<CfInfluencerLtvPredictionRecommendingL />} />

@@ -86,6 +86,7 @@ app.use('/api/contract-templates', contractTemplateRoutes);
 app.use('/api/messaging', messagingRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/integrations', integrationRoutes);
+app.use('/api/brand-safety-clause-monitor', (await import('./routes/brandSafetyClauseMonitor.js')).default);
 import('./routes/fakeFollowerDetector.js').then(m => app.use('/api/fake-follower-detector', m.default));
 import('./routes/microInfluencerDiscovery.js').then(m => app.use('/api/micro-influencer-discovery', m.default));
 
