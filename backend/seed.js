@@ -12,6 +12,8 @@ const pool = new pg.Pool({
 });
 
 async function seed() {
+  if (process.env.ALLOW_DESTRUCTIVE_DEMO_SEED !== 'true' || process.env.NODE_ENV === 'production') throw new Error('destructive demo seed is disabled');
+  if (!process.env.DEMO_ADMIN_PASSWORD) throw new Error('DEMO_ADMIN_PASSWORD is required for demo seeding');
   const client = await pool.connect();
   try {
     console.log('Connected to PostgreSQL');
@@ -309,8 +311,8 @@ async function seed() {
 
     // Users
     console.log('Seeding users...');
-    const adminHash = await bcrypt.hash('password123', 10);
-    const managerHash = await bcrypt.hash('password123', 10);
+    const adminHash = await bcrypt.hash(process.env.DEMO_ADMIN_PASSWORD, 10);
+    const managerHash = await bcrypt.hash(process.env.DEMO_ADMIN_PASSWORD, 10);
     await client.query(`
       INSERT INTO users (email, password, name, role) VALUES
         ('admin@influencer.io', $1, 'Admin User', 'admin'),
@@ -588,7 +590,7 @@ async function seed() {
     console.log('\n========================================');
     console.log('Database seeded successfully!');
     console.log('========================================');
-    console.log('Default login: admin@influencer.io / password123');
+    console.log('Demo users created; password was supplied through DEMO_ADMIN_PASSWORD.');
     console.log('========================================\n');
 
   } catch (err) {

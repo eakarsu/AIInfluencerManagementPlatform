@@ -26,11 +26,6 @@ export default function Login() {
     }
   };
 
-  const quickLogin = () => {
-    setEmail('admin@influencer.io');
-    setPassword('password123');
-  };
-
   return (
     <div className="login-page">
       <div className="login-card">
@@ -72,11 +67,6 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="quick-login">
-          <button type="button" onClick={quickLogin}>
-            Quick Login (Demo Credentials)
-          </button>
-        </div>
       </div>
     </div>
   );

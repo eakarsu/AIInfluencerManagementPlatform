@@ -19,7 +19,6 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import influencerRoutes from './routes/influencers.js';
 import campaignRoutes from './routes/campaigns.js';
@@ -41,6 +40,8 @@ import messagingRoutes from './routes/messaging.js';
 import marketplaceRoutes from './routes/marketplace.js';
 import integrationRoutes from './routes/integrations.js';
 import customViewsRoutes from './routes/customViews.js';
+import governedCampaignRoutes from './routes/governedCampaigns.js';
+import { authenticateToken } from './middleware/auth.js';
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
@@ -51,19 +52,6 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-
-// Create ai_results table on startup
-pool.query(`
-  CREATE TABLE IF NOT EXISTS ai_results (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER,
-    tool_name TEXT,
-    entity_id INTEGER,
-    result JSONB,
-    raw_response TEXT,
-    created_at TIMESTAMP DEFAULT NOW()
-  )
-`).catch(e => console.error('ai_results table creation error:', e.message));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -86,6 +74,7 @@ app.use('/api/contract-templates', contractTemplateRoutes);
 app.use('/api/messaging', messagingRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
 app.use('/api/integrations', integrationRoutes);
+app.use('/api/governed-campaigns', authenticateToken, governedCampaignRoutes);
 app.use('/api/brand-safety-clause-monitor', (await import('./routes/brandSafetyClauseMonitor.js')).default);
 import('./routes/fakeFollowerDetector.js').then(m => app.use('/api/fake-follower-detector', m.default));
 import('./routes/microInfluencerDiscovery.js').then(m => app.use('/api/micro-influencer-discovery', m.default));
