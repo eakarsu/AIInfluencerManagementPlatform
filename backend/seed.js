@@ -315,9 +315,9 @@ async function seed() {
     const managerHash = await bcrypt.hash(process.env.DEMO_ADMIN_PASSWORD, 10);
     await client.query(`
       INSERT INTO users (email, password, name, role) VALUES
-        ('admin@influencer.io', $1, 'Admin User', 'admin'),
+        ($3, $1, 'Admin User', 'admin'),
         ('manager@influencer.io', $2, 'Sarah Manager', 'manager')
-    `, [adminHash, managerHash]);
+    `, [adminHash, managerHash, process.env.DEMO_ADMIN_EMAIL || 'admin@influencer.io']);
     console.log('  -> 2 users seeded');
 
     // Brands

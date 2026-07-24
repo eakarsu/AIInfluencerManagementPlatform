@@ -13,7 +13,8 @@ const aiRateLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 60 });
 
 async function callAI(systemPrompt, userPrompt) {
   if (!process.env.OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY not configured');
-  const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const baseUrl = (process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
+  const r = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
