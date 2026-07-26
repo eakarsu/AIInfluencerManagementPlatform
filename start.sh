@@ -88,6 +88,10 @@ source "$project_dir/.env"
 set +a
 [ -d "$project_dir/backend/node_modules" ] && [ -d "$project_dir/frontend/node_modules" ] || { echo 'Dependencies are absent; install them explicitly with npm ci in backend/ and frontend/.' >&2; exit 1; }
 require_setting DATABASE_URL; require_setting JWT_SECRET
+if [ "${NODE_ENV:-development}" != production ] && [ "${ENABLE_DEMO_CREDENTIAL_AUTOFILL:-true}" = true ]; then
+  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$project_dir/backend/migrations/002_identity_scope.sql" >/dev/null
+  node "$project_dir/backend/provision-demo-credentials.js"
+fi
 cleanup(){ kill "${backend_pid:-}" "${frontend_pid:-}" 2>/dev/null || true; wait "${backend_pid:-}" "${frontend_pid:-}" 2>/dev/null || true; }
 trap cleanup EXIT INT TERM
 (cd "$project_dir/backend" && npm start) & backend_pid=$!
