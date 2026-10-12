@@ -1,3 +1,5 @@
+import AIWorkspaceModal from '../components/AIWorkspaceModal';
+import '../components/AIWorkspace.css';
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, ArrowLeft, Edit3, Trash2, X, Swords } from 'lucide-react';
 import api from '../api';
@@ -41,7 +43,7 @@ export default function Competitors() {
     return (
       <div>
         <button className="back-btn" onClick={() => setSelected(null)}><ArrowLeft size={16} /> Back</button>
-        <div className="detail-view">
+        <AIWorkspaceModal title="Record details" onClose={() => setSelected(null)}>
           <div className="detail-header">
             <h2>{selected.name}</h2>
             <div className="detail-actions">
@@ -64,7 +66,7 @@ export default function Competitors() {
             {selected.content_strategy && <div className="detail-field" style={{ marginTop: 12 }}><label>Content Strategy</label><p>{selected.content_strategy}</p></div>}
             {selected.notes && <div className="detail-field" style={{ marginTop: 12 }}><label>Notes</label><p>{selected.notes}</p></div>}
           </div>
-        </div>
+        </AIWorkspaceModal>
         {confirmDelete && <div className="modal-overlay" onClick={() => setConfirmDelete(null)}><div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}><div className="modal-body"><div className="confirm-dialog"><h4>Delete?</h4><p>Delete "{confirmDelete.name}"?</p><div className="confirm-actions"><button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>Cancel</button><button className="btn btn-danger" onClick={handleDelete}>Delete</button></div></div></div></div></div>}
         {toast && <div className={`toast toast-${toast.type}`}>{toast.msg}</div>}
       </div>

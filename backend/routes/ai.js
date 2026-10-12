@@ -393,15 +393,15 @@ Goals: ${campaign.goals || 'brand awareness'}${paymentData}`;
   }
 });
 
-// GET /ai/results — fetch stored AI results history
+// GET /ai/results — fetch the signed-in user's stored AI results history
 router.get('/results', async (req, res) => {
   try {
-    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
     const tool = req.query.tool;
-    const params = tool ? [tool, limit] : [limit];
+    const params = tool ? [req.user.id, tool, limit] : [req.user.id, limit];
     const query = tool
-      ? `SELECT id, user_id, tool_name, entity_id, raw_response, created_at FROM ai_results WHERE tool_name = $1 ORDER BY created_at DESC LIMIT $2`
-      : `SELECT id, user_id, tool_name, entity_id, raw_response, created_at FROM ai_results ORDER BY created_at DESC LIMIT $1`;
+      ? `SELECT id, tool_name, entity_id, result, raw_response, created_at FROM ai_results WHERE user_id = $1 AND tool_name = $2 ORDER BY created_at DESC LIMIT $3`
+      : `SELECT id, tool_name, entity_id, result, raw_response, created_at FROM ai_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`;
     const result = await pool.query(query, params);
     res.json({ data: result.rows });
   } catch (err) {
@@ -447,7 +447,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'audience-segmentation', influencer_id || null, structured, raw);
+    await saveAIResult(req.user?.id, 'audience-segmentation', influencer_id || null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -495,7 +495,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'performance-prediction', campaign_id || null, structured, raw);
+    await saveAIResult(req.user?.id, 'performance-prediction', campaign_id || null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -538,7 +538,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'fraud-detection', influencer_id || null, structured, raw);
+    await saveAIResult(req.user?.id, 'fraud-detection', influencer_id || null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -597,7 +597,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'ltv-prediction', influencer_id || null, structured, raw);
+    await saveAIResult(req.user?.id, 'ltv-prediction', influencer_id || null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -639,7 +639,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'audience-overlap', null, structured, raw);
+    await saveAIResult(req.user?.id, 'audience-overlap', null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -682,7 +682,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'trend-calendar', null, structured, raw);
+    await saveAIResult(req.user?.id, 'trend-calendar', null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -739,7 +739,7 @@ Return JSON only:
 }`;
     const raw = await callOpenRouter(system, user);
     const structured = parseJSON(raw);
-    saveAIResult(req.user?.id, 'micro-influencer-discovery', brand_id || null, structured, raw);
+    await saveAIResult(req.user?.id, 'micro-influencer-discovery', brand_id || null, structured, raw);
     res.json({ structured, raw });
   } catch (err) {
     res.status(500).json({ error: err.message });

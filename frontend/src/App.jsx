@@ -1,3 +1,4 @@
+import AIReportLibrary from "./components/AIReportLibrary";
 import React from 'react';
 import { Routes, Route, Navigate, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -164,7 +165,7 @@ function AppLayout() {
           <LogOut size={18} />
           Sign Out
         </button>
-      </aside>
+      <AIReportLibrary /></aside>
 
       <div className="main-content">
         <header className="top-header">

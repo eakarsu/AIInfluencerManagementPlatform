@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import api from '../api';
@@ -8,19 +8,47 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoEnabled, setDemoEnabled] = useState(false);
+  const [checkingDemo, setCheckingDemo] = useState(true);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const controller = new AbortController();
+    api.get('/auth/demo', { signal: controller.signal })
+      .then((response) => setDemoEnabled(Boolean(response.data?.enabled)))
+      .catch(() => setDemoEnabled(false))
+      .finally(() => setCheckingDemo(false));
+    return () => controller.abort();
+  }, []);
+
+  const acceptLogin = (data) => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    navigate('/dashboard');
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user || { email, name: 'Admin' }));
-      navigate('/dashboard');
+      const response = await api.post('/auth/login', { email, password });
+      acceptLogin(response.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginAsDemo = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/demo');
+      acceptLogin(response.data);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Demo login is unavailable.');
     } finally {
       setLoading(false);
     }
@@ -64,12 +92,13 @@ export default function Login() {
           </div>
           <button
             type="button"
-            onClick={() => { setEmail(import.meta.env.VITE_DEMO_EMAIL || ''); setPassword(import.meta.env.VITE_DEMO_PASSWORD || ''); }}
-            disabled={!import.meta.env.VITE_DEMO_EMAIL || !import.meta.env.VITE_DEMO_PASSWORD}
-            aria-label="Auto Fill Demo Credentials"
-            style={{ width: '100%', marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', border: '1px solid currentColor', background: 'transparent', cursor: 'pointer' }}
+            onClick={loginAsDemo}
+            disabled={loading || checkingDemo || !demoEnabled}
+            aria-label="Log in as Demo"
+            title={!checkingDemo && !demoEnabled ? 'Demo login is disabled in this environment.' : undefined}
+            style={{ width: '100%', marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', border: '1px solid currentColor', background: 'transparent', cursor: loading || !demoEnabled ? 'not-allowed' : 'pointer' }}
           >
-            Auto Fill Demo Credentials
+            {checkingDemo ? 'Checking Demo Login…' : loading ? 'Signing in…' : 'Log in as Demo'}
           </button>
           <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}

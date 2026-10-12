@@ -6,6 +6,32 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
+const demoCredentials = () => {
+  if (process.env.NODE_ENV === 'production' || process.env.ENABLE_DEMO_CREDENTIAL_AUTOFILL !== 'true') return null;
+  const pairs = [
+    ['DEMO_EMAIL', 'DEMO_PASSWORD'],
+    ['DEMO_ADMIN_EMAIL', 'DEMO_ADMIN_PASSWORD'],
+    ['SEED_ADMIN_EMAIL', 'SEED_ADMIN_PASSWORD'],
+    ['ADMIN_EMAIL', 'ADMIN_PASSWORD'],
+    ['DEFAULT_EMAIL', 'DEFAULT_PASSWORD'],
+  ];
+  for (const [emailKey, passwordKey] of pairs) {
+    const email = String(process.env[emailKey] || '').trim().toLowerCase();
+    const password = String(process.env[passwordKey] || '');
+    if (email && password) return { email, password };
+  }
+  return null;
+};
+
+const loginResponse = (user) => ({
+  token: jwt.sign(
+    { id: user.id, email: user.email, role: user.role, tenant_id: user.tenant_id },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' },
+  ),
+  user: { id: user.id, name: user.name, email: user.email, role: user.role },
+});
+
 // POST /auth/register
 router.post('/register', async (req, res) => {
   try {
@@ -60,12 +86,30 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, tenant_id: user.tenant_id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json(loginResponse(user));
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Demo credentials remain server-side and only authenticate an existing account.
+router.get('/demo', (_req, res) => {
+  res.json({ enabled: Boolean(demoCredentials()) });
+});
+
+router.post('/demo', async (_req, res) => {
+  const credentials = demoCredentials();
+  if (!credentials) return res.status(404).json({ error: 'Demo login is not enabled.' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [credentials.email]);
+    if (!result.rows.length || !await bcrypt.compare(credentials.password, result.rows[0].password_hash)) {
+      return res.status(503).json({ error: 'The configured demo account is unavailable.' });
+    }
+    return res.json(loginResponse(result.rows[0]));
+  } catch (err) {
+    console.error('Demo login error:', err);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 

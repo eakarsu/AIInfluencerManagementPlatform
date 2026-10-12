@@ -1,3 +1,5 @@
+import AIWorkspaceModal from '../components/AIWorkspaceModal';
+import '../components/AIWorkspace.css';
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, ArrowLeft, Edit3, Trash2, X, Users } from 'lucide-react';
 import api from '../api';
@@ -90,7 +92,7 @@ export default function Influencers() {
         <button className="back-btn" onClick={() => setSelected(null)}>
           <ArrowLeft size={16} /> Back to Influencers
         </button>
-        <div className="detail-view">
+        <AIWorkspaceModal title="Record details" onClose={() => setSelected(null)}>
           <div className="detail-header">
             <div>
               <h2>{selected.name}</h2>
@@ -116,7 +118,7 @@ export default function Influencers() {
               <div className="detail-field" style={{ marginTop: 20 }}><label>Bio</label><p>{selected.bio}</p></div>
             )}
           </div>
-        </div>
+        </AIWorkspaceModal>
         {confirmDelete && (
           <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
             <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>

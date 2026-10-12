@@ -1,3 +1,5 @@
+import AIWorkspaceModal from '../components/AIWorkspaceModal';
+import '../components/AIWorkspace.css';
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, ArrowLeft, Edit3, Trash2, X, Send, Bell, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../api';
@@ -82,7 +84,7 @@ export default function Outreach() {
     return (
       <div>
         <button className="back-btn" onClick={() => setSelected(null)}><ArrowLeft size={16} /> Back</button>
-        <div className="detail-view">
+        <AIWorkspaceModal title="Record details" onClose={() => setSelected(null)}>
           <div className="detail-header">
             <div><h2>{selected.subject || 'Outreach'}</h2><span className={`badge ${statusColors[selected.status]||'badge-info'}`} style={{ marginTop: 8 }}>{selected.status}</span></div>
             <div className="detail-actions">
@@ -102,7 +104,7 @@ export default function Outreach() {
             {selected.message && <div className="detail-field" style={{ marginTop: 20 }}><label>Message</label><p style={{ whiteSpace: 'pre-wrap' }}>{selected.message}</p></div>}
             {selected.notes && <div className="detail-field" style={{ marginTop: 12 }}><label>Notes</label><p>{selected.notes}</p></div>}
           </div>
-        </div>
+        </AIWorkspaceModal>
         {confirmDelete && <div className="modal-overlay" onClick={() => setConfirmDelete(null)}><div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}><div className="modal-body"><div className="confirm-dialog"><h4>Delete?</h4><p>Delete this outreach record?</p><div className="confirm-actions"><button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>Cancel</button><button className="btn btn-danger" onClick={handleDelete}>Delete</button></div></div></div></div></div>}
         {toast && <div className={`toast toast-${toast.type}`}>{toast.msg}</div>}
       </div>

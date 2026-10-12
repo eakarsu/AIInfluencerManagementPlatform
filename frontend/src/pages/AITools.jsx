@@ -1,18 +1,119 @@
-import React, { useState } from 'react';
+import NativeAIControls from "../components/NativeAIControls.jsx";
+import FormattedAIReport from "../components/FormattedAIReport.jsx";
+import AIResultHistory from "../components/AIResultHistory.jsx";
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Sparkles, FileText, Brain, Users, Send, Eye, Swords, Target, Loader2, CheckCircle2, AlertCircle, Star, TrendingUp, Lightbulb, Zap, BarChart3, Heart, Copy, Check } from 'lucide-react';
 import api from '../api';
 
 const tools = [
-  { id: 'content', title: 'Content Generator', desc: 'Generate engaging content ideas, captions, and scripts for any platform', icon: FileText, color: '#6366f1', bg: '#eef2ff', endpoint: '/ai/generate-content', fields: [{ name: 'platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn'] }, { name: 'topic', type: 'text', placeholder: 'e.g. Summer fashion trends' }, { name: 'tone', type: 'select', options: ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational'] }, { name: 'content_type', type: 'select', options: ['Post Caption', 'Story Script', 'Video Script', 'Blog Outline', 'Tweet Thread'] }] },
-  { id: 'sentiment', title: 'Sentiment Analysis', desc: 'Analyze audience sentiment and brand perception across platforms', icon: Brain, color: '#8b5cf6', bg: '#f5f3ff', endpoint: '/ai/analyze-sentiment', fields: [{ name: 'text', type: 'textarea', placeholder: 'Paste text, comments, or reviews to analyze...' }, { name: 'context', type: 'text', placeholder: 'Context (e.g. Instagram comments on product launch)' }] },
-  { id: 'matching', title: 'Influencer Matching', desc: 'Find the perfect influencer matches for your brand and campaign goals', icon: Users, color: '#10b981', bg: '#d1fae5', endpoint: '/ai/match-influencers', fields: [{ name: 'brand_description', type: 'text', placeholder: 'Brand name and description' }, { name: 'campaign_goals', type: 'text', placeholder: 'e.g. Increase brand awareness among Gen Z' }, { name: 'budget', type: 'number', placeholder: 'Budget ($)' }, { name: 'platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'Any'] }, { name: 'industry', type: 'text', placeholder: 'e.g. Fashion, Tech, Fitness' }] },
-  { id: 'outreach', title: 'Outreach Generator', desc: 'Create personalized outreach messages for influencer collaborations', icon: Send, color: '#f59e0b', bg: '#fef3c7', endpoint: '/ai/generate-outreach', fields: [{ name: 'influencer_name', type: 'text', placeholder: 'Influencer name' }, { name: 'brand_name', type: 'text', placeholder: 'Your brand name' }, { name: 'collaboration_type', type: 'select', options: ['Product Review', 'Brand Ambassador', 'Sponsored Post', 'Event', 'Giveaway'] }, { name: 'campaign_description', type: 'textarea', placeholder: 'Describe the campaign and key talking points...' }] },
-  { id: 'audience', title: 'Audience Analysis', desc: 'Get deep insights into audience demographics and behavior patterns', icon: Eye, color: '#3b82f6', bg: '#dbeafe', endpoint: '/ai/audience-analysis', fields: [{ name: 'platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter'] }, { name: 'follower_count', type: 'number', placeholder: 'Approximate followers' }, { name: 'content_type', type: 'select', options: ['Lifestyle', 'Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Mixed'] }] },
-  { id: 'competitor', title: 'Competitor Insights', desc: 'Analyze competitor strategies and find opportunities for differentiation', icon: Swords, color: '#ef4444', bg: '#fee2e2', endpoint: '/ai/competitor-insights', fields: [{ name: 'brand_name', type: 'text', placeholder: 'Your brand/influencer' }, { name: 'competitors', type: 'text', placeholder: 'Competitor names (comma separated)' }, { name: 'industry', type: 'text', placeholder: 'Industry (e.g. Beauty, Tech)' }] },
-  { id: 'strategy', title: 'Campaign Strategy', desc: 'Get AI-powered campaign strategy recommendations and optimization tips', icon: Target, color: '#ec4899', bg: '#fce7f3', endpoint: '/ai/campaign-strategy', fields: [{ name: 'brand_description', type: 'text', placeholder: 'Brand name and description' }, { name: 'objectives', type: 'select', options: ['Brand Awareness', 'Lead Generation', 'Sales Conversion', 'Community Building', 'Product Launch'] }, { name: 'budget', type: 'number', placeholder: 'Total budget ($)' }, { name: 'timeline', type: 'text', placeholder: 'e.g. 3 months' }, { name: 'industry', type: 'text', placeholder: 'e.g. Beauty, Fashion, Tech' }] },
-  { id: 'brand-safety', title: 'Brand Safety Scanner', desc: 'Scan an influencer for brand safety risks, toxicity, and controversy flags before campaign launch', icon: Zap, color: '#f97316', bg: '#fff7ed', endpoint: '/ai/brand-safety-scan', fields: [{ name: 'influencer_id', type: 'number', placeholder: 'Influencer ID (from Influencers page)' }] },
-  { id: 'roi-analysis', title: 'Campaign ROI Analyzer', desc: 'AI-powered ROI analysis for a campaign — performance grade, cost metrics, and recommendations', icon: BarChart3, color: '#0ea5e9', bg: '#e0f2fe', endpoint: '/ai/roi-analysis', fields: [{ name: 'campaign_id', type: 'number', placeholder: 'Campaign ID (from Campaigns page)' }] },
+  { id: 'content', historyTool: 'generate-content', title: 'Content Generator', desc: 'Generate engaging content ideas, captions, and scripts for any platform', icon: FileText, color: '#6366f1', bg: '#eef2ff', endpoint: '/ai/generate-content', fields: [
+    { name: 'platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn'] },
+    { name: 'topic', type: 'text', placeholder: 'e.g. Summer fashion trends' },
+    { name: 'tone', type: 'select', options: ['Professional', 'Casual', 'Humorous', 'Inspirational', 'Educational'] },
+    { name: 'content_type', type: 'select', options: ['Post Caption', 'Story Script', 'Video Script', 'Blog Outline', 'Tweet Thread'] },
+    { name: 'audience', type: 'text', placeholder: 'Target audience (optional)' },
+    { name: 'influencer_style', type: 'text', placeholder: 'Influencer style (optional)' },
+    { name: 'campaign_goals', type: 'textarea', placeholder: 'Campaign goals and success criteria (optional)' },
+  ] },
+  { id: 'sentiment', historyTool: 'analyze-sentiment', title: 'Sentiment Analysis', desc: 'Analyze audience sentiment and brand perception across platforms', icon: Brain, color: '#8b5cf6', bg: '#f5f3ff', endpoint: '/ai/analyze-sentiment', fields: [{ name: 'text', type: 'textarea', placeholder: 'Paste text, comments, or reviews to analyze...' }, { name: 'context', type: 'text', placeholder: 'Context (e.g. Instagram comments on product launch)' }] },
+  { id: 'matching', historyTool: 'match-influencers', title: 'Influencer Matching', desc: 'Find the perfect influencer matches for your brand and campaign goals', icon: Users, color: '#10b981', bg: '#d1fae5', endpoint: '/ai/match-influencers', fields: [
+    { name: 'brand_description', type: 'textarea', placeholder: 'Brand name and description' },
+    { name: 'campaign_goals', type: 'textarea', placeholder: 'Campaign goals' },
+    { name: 'target_audience', type: 'textarea', placeholder: 'Target audience (optional)' },
+    { name: 'budget', type: 'number', placeholder: 'Budget ($)' },
+    { name: 'platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'Any'] },
+    { name: 'industry', type: 'text', placeholder: 'e.g. Fashion, Tech, Fitness' },
+  ] },
+  { id: 'outreach', historyTool: 'generate-outreach', title: 'Outreach Generator', desc: 'Create personalized outreach messages for influencer collaborations', icon: Send, color: '#f59e0b', bg: '#fef3c7', endpoint: '/ai/generate-outreach', fields: [
+    { name: 'influencer_name', type: 'text', placeholder: 'Influencer name' },
+    { name: 'influencer_platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'LinkedIn'] },
+    { name: 'brand_name', type: 'text', placeholder: 'Your brand name' },
+    { name: 'collaboration_type', type: 'select', options: ['Product Review', 'Brand Ambassador', 'Sponsored Post', 'Event', 'Giveaway'] },
+    { name: 'campaign_description', type: 'textarea', placeholder: 'Describe the campaign and key talking points...' },
+    { name: 'compensation', type: 'text', placeholder: 'Compensation proposal (optional)' },
+    { name: 'tone', type: 'select', options: ['Professional', 'Friendly', 'Concise'] },
+  ] },
+  { id: 'audience', historyTool: 'audience-analysis', title: 'Audience Analysis', desc: 'Get deep insights into audience demographics and behavior patterns', icon: Eye, color: '#3b82f6', bg: '#dbeafe', endpoint: '/ai/audience-analysis', fields: [
+    { name: 'platform', type: 'select', options: ['Instagram', 'YouTube', 'TikTok', 'Twitter'] },
+    { name: 'follower_count', type: 'number', placeholder: 'Approximate followers' },
+    { name: 'content_type', type: 'select', options: ['Lifestyle', 'Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Mixed'] },
+    { name: 'demographics', type: 'textarea', placeholder: 'Audience demographics JSON (optional)' },
+    { name: 'interests', type: 'textarea', placeholder: 'Audience interests JSON (optional)' },
+    { name: 'engagement_data', type: 'textarea', placeholder: 'Engagement observations JSON (optional)' },
+  ] },
+  { id: 'competitor', historyTool: 'competitor-insights', title: 'Competitor Insights', desc: 'Analyze competitor strategies and find opportunities for differentiation', icon: Swords, color: '#ef4444', bg: '#fee2e2', endpoint: '/ai/competitor-insights', fields: [
+    { name: 'brand_name', type: 'text', placeholder: 'Your brand/influencer' },
+    { name: 'competitors', type: 'text', placeholder: 'Competitor names (comma separated)' },
+    { name: 'industry', type: 'text', placeholder: 'Industry (e.g. Beauty, Tech)' },
+    { name: 'platforms', type: 'text', placeholder: 'Platforms to compare (optional)' },
+    { name: 'focus_areas', type: 'textarea', placeholder: 'Focus areas and questions (optional)' },
+  ] },
+  { id: 'strategy', historyTool: 'campaign-strategy', title: 'Campaign Strategy', desc: 'Get AI-powered campaign strategy recommendations and optimization tips', icon: Target, color: '#ec4899', bg: '#fce7f3', endpoint: '/ai/campaign-strategy', fields: [
+    { name: 'brand_description', type: 'textarea', placeholder: 'Brand name and description' },
+    { name: 'objectives', type: 'select', options: ['Brand Awareness', 'Lead Generation', 'Sales Conversion', 'Community Building', 'Product Launch'] },
+    { name: 'budget', type: 'number', placeholder: 'Total budget ($)' },
+    { name: 'timeline', type: 'text', placeholder: 'e.g. 3 months' },
+    { name: 'industry', type: 'text', placeholder: 'e.g. Beauty, Fashion, Tech' },
+    { name: 'target_audience', type: 'textarea', placeholder: 'Target audience (optional)' },
+    { name: 'platforms', type: 'text', placeholder: 'Platforms (optional)' },
+    { name: 'past_performance', type: 'textarea', placeholder: 'Past performance JSON or notes (optional)' },
+    { name: 'campaign_id', type: 'reference', source: 'campaigns', placeholder: 'Existing campaign (optional)' },
+  ] },
+  { id: 'brand-safety', historyTool: 'brand-safety-scan', title: 'Brand Safety Scanner', desc: 'Scan an influencer for brand safety risks, toxicity, and controversy flags before campaign launch', icon: Zap, color: '#f97316', bg: '#fff7ed', endpoint: '/ai/brand-safety-scan', fields: [{ name: 'influencer_id', type: 'reference', source: 'influencers', placeholder: 'Existing influencer' }] },
+  { id: 'roi-analysis', historyTool: 'roi-analysis', title: 'Campaign ROI Analyzer', desc: 'AI-powered ROI analysis for a campaign — performance grade, cost metrics, and recommendations', icon: BarChart3, color: '#0ea5e9', bg: '#e0f2fe', endpoint: '/ai/roi-analysis', fields: [{ name: 'campaign_id', type: 'reference', source: 'campaigns', placeholder: 'Existing campaign' }] },
 ];
+
+const presetNames = ['Launch brief', 'Growth campaign', 'Executive review'];
+const examples = {
+  topic: ['Summer capsule wardrobe launch', 'Creator-led fitness challenge', 'Sustainable travel essentials'],
+  audience: ['US Gen Z fashion shoppers aged 18–27', 'Busy professionals interested in practical wellness', 'Eco-conscious travelers aged 25–40'],
+  influencer_style: ['Editorial, candid, and product-led', 'Energetic, educational, and community-focused', 'Warm documentary storytelling with practical tips'],
+  campaign_goals: ['Build qualified awareness and save rate; report reach, saves, and profile visits.', 'Drive challenge sign-ups and measure completed registrations and engagement quality.', 'Increase consideration while documenting clicks, saves, and attributable purchases.'],
+  text: ['I love the design and the tutorial was useful, but shipping updates were unclear.', 'The challenge feels achievable and the coach answers questions thoughtfully.', 'The product quality exceeded expectations; please add clearer sizing guidance.'],
+  context: ['Customer comments from an Instagram launch post', 'YouTube comments on a sponsored fitness series', 'Post-purchase feedback from a creator landing page'],
+  brand_description: ['Northstar Apparel is a mid-market sustainable fashion brand launching a versatile summer collection.', 'Harbor Health offers accessible at-home fitness programs for time-constrained professionals.', 'Field & Coast makes durable, repairable travel accessories with transparent sourcing.'],
+  target_audience: ['US shoppers aged 18–27 who follow sustainable fashion and capsule wardrobes.', 'Professionals aged 25–44 seeking short, evidence-informed home workouts.', 'Eco-conscious travelers aged 25–40 who value durability and repairability.'],
+  influencer_name: ['Jordan Lee', 'Maya Chen', 'Alex Rivera'],
+  influencer_platform: ['Instagram', 'YouTube', 'TikTok'],
+  brand_name: ['Northstar Apparel', 'Harbor Health', 'Field & Coast'],
+  campaign_description: ['A four-week summer capsule launch with one review, two styling reels, and usage rights for approved assets.', 'A six-week fitness challenge with weekly videos, community check-ins, and tracked registrations.', 'A travel essentials launch featuring packing tutorials, honest product tests, and tracked links.'],
+  compensation: ['$2,500 fixed fee plus approved product', '$4,000 fixed fee plus registration bonus', '$3,200 fixed fee plus travel kit'],
+  demographics: ['{"age_18_24_pct":42,"age_25_34_pct":36,"top_regions":["US","Canada"]}', '{"age_25_34_pct":48,"age_35_44_pct":27,"top_regions":["US","UK"]}', '{"age_25_34_pct":44,"age_35_44_pct":31,"top_regions":["US","Australia"]}'],
+  interests: ['["sustainable fashion","capsule wardrobes","personal style"]', '["home fitness","meal planning","work-life balance"]', '["responsible travel","outdoor gear","photography"]'],
+  engagement_data: ['{"avg_reach":82000,"avg_engagement_rate":4.8,"saves_per_post":2100}', '{"avg_reach":125000,"avg_engagement_rate":5.2,"comments_per_post":860}', '{"avg_reach":97000,"avg_engagement_rate":4.4,"link_click_rate":1.9}'],
+  competitors: ['Everlane, Reformation, Quince', 'Peloton, Apple Fitness+, FitOn', 'Patagonia, Peak Design, Cotopaxi'],
+  platforms: ['Instagram, TikTok', 'YouTube, Instagram', 'TikTok, YouTube'],
+  focus_areas: ['Compare creator positioning, content cadence, engagement quality, and whitespace for a summer launch.', 'Compare challenge formats, conversion paths, community mechanics, and retention signals.', 'Compare proof points, creator partnerships, customer objections, and differentiation opportunities.'],
+  timeline: ['6 weeks', '8 weeks', '10 weeks'],
+  industry: ['Sustainable fashion', 'Health and fitness', 'Travel accessories'],
+  past_performance: ['{"reach":420000,"engagement_rate":4.2,"conversions":680,"roas":2.8}', '{"reach":610000,"engagement_rate":5.1,"registrations":1400,"roas":3.2}', '{"reach":530000,"engagement_rate":4.6,"conversions":920,"roas":3.5}'],
+};
+
+function exampleValue(field, variant, references, current) {
+  if (field.type === 'reference') {
+    const records = references[field.source] || [];
+    return records.length ? String(records[variant % records.length].id) : current || null;
+  }
+  if (field.options) return field.options[variant % field.options.length];
+  if (examples[field.name]) return examples[field.name][variant];
+  if (field.name === 'budget') return [12000, 24000, 36000][variant];
+  if (field.name === 'follower_count') return [85000, 140000, 220000][variant];
+  return `Complete ${presetNames[variant].toLowerCase()} example for ${field.name.replace(/_/g, ' ')}.`;
+}
+
+function toolPresets(tool, references, current, setFormData) {
+  return presetNames.map((name, variant) => ({ name, fill: () => {
+    const next = {};
+    const manual = [];
+    tool.fields.forEach((field) => {
+      const value = exampleValue(field, variant, references, current[field.name]);
+      if (value === null) manual.push(field.placeholder || field.name.replace(/_/g, ' '));
+      else next[field.name] = value;
+    });
+    setFormData(next);
+    return { filled: Object.keys(next).length, manual };
+  } }));
+}
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
@@ -268,6 +369,22 @@ export default function AITools() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [references, setReferences] = useState({ influencers: [], campaigns: [] });
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    Promise.all(['influencers', 'campaigns'].map(async (source) => {
+      try {
+        const response = await api.get(`/${source}`, { params: { page: 1, limit: 100 }, signal: controller.signal });
+        return [source, Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : []];
+      } catch (failure) {
+        if (failure.name === 'CanceledError' || failure.name === 'AbortError') return [source, []];
+        return [source, []];
+      }
+    })).then((entries) => setReferences(Object.fromEntries(entries)));
+    return () => controller.abort();
+  }, []);
 
   const handleGenerate = async () => {
     if (!activeTool) return;
@@ -275,8 +392,14 @@ export default function AITools() {
     setError(null);
     setResult(null);
     try {
-      const res = await api.post(activeTool.endpoint, formData);
+      const structuredFields = new Set(['demographics', 'interests', 'engagement_data', 'past_performance']);
+      const body = Object.fromEntries(Object.entries(formData).map(([key, value]) => {
+        if (!structuredFields.has(key) || typeof value !== 'string') return [key, value];
+        try { return [key, JSON.parse(value)]; } catch (_) { return [key, value]; }
+      }));
+      const res = await api.post(activeTool.endpoint, body);
       setResult(res.data);
+      setHistoryRefresh((value) => value + 1);
     } catch (err) {
       if (err.response?.status === 429) {
         setError('AI request limit reached. Please wait before trying again.');
@@ -290,7 +413,7 @@ export default function AITools() {
 
   if (activeTool) {
     return (
-      <div>
+      <NativeAIControls busy={loading} context="InfluencerManagementPlatform" presets={toolPresets(activeTool, references, formData, setFormData)}><div>
         <button className="back-btn" onClick={() => { setActiveTool(null); setResult(null); setError(null); setFormData({}); }}>
           <ArrowLeft size={16} /> Back to AI Tools
         </button>
@@ -311,15 +434,17 @@ export default function AITools() {
             {activeTool.fields.map((field) => (
               <div className="form-group" key={field.name}>
                 <label style={{ textTransform: 'capitalize' }}>{field.name.replace(/_/g, ' ')}</label>
-                {field.type === 'select' ? (
-                  <select className="form-control" value={formData[field.name] || ''} onChange={e => setFormData({...formData, [field.name]: e.target.value})}>
-                    <option value="">Select...</option>
-                    {field.options.map(o => <option key={o} value={o}>{o}</option>)}
+                {field.type === 'select' || field.type === 'reference' ? (
+                  <select data-ai-field={field.name} className="form-control" value={formData[field.name] || ''} onChange={e => setFormData({...formData, [field.name]: e.target.value})}>
+                    <option value="">{field.type === 'reference' ? `Select ${field.placeholder.toLowerCase()}…` : 'Select...'}</option>
+                    {(field.type === 'reference' ? references[field.source] || [] : field.options).map((option) => field.type === 'reference'
+                      ? <option key={option.id} value={option.id}>{option.name || option.title || option.email || `Record ${option.id}`} (#{option.id})</option>
+                      : <option key={option} value={option}>{option}</option>)}
                   </select>
                 ) : field.type === 'textarea' ? (
-                  <textarea className="form-control" placeholder={field.placeholder} value={formData[field.name] || ''} onChange={e => setFormData({...formData, [field.name]: e.target.value})} />
+                  <textarea data-ai-field={field.name} className="form-control" placeholder={field.placeholder} value={formData[field.name] || ''} onChange={e => setFormData({...formData, [field.name]: e.target.value})} />
                 ) : (
-                  <input className="form-control" type={field.type} placeholder={field.placeholder} value={formData[field.name] || ''} onChange={e => setFormData({...formData, [field.name]: e.target.value})} />
+                  <input data-ai-field={field.name} className="form-control" type={field.type} placeholder={field.placeholder} value={formData[field.name] || ''} onChange={e => setFormData({...formData, [field.name]: e.target.value})} />
                 )}
               </div>
             ))}
@@ -342,19 +467,9 @@ export default function AITools() {
           </div>
         )}
 
-        {result && (
-          <div className="ai-result">
-            <div className="ai-result-header">
-              <Sparkles size={18} style={{ color: 'var(--primary)' }} />
-              <h4>AI Generated Results</h4>
-              <span className="badge badge-success" style={{ marginLeft: 'auto' }}>
-                <CheckCircle2 size={12} style={{ marginRight: 4 }} /> Complete
-              </span>
-            </div>
-            {renderAIResult(activeTool.id, result)}
-          </div>
-        )}
-      </div>
+        {result && <FormattedAIReport response={result} title={`${activeTool.title} result`} />}
+        <AIResultHistory tool={activeTool.historyTool} title={activeTool.title} refreshKey={historyRefresh} />
+      </div></NativeAIControls>
     );
   }
 
