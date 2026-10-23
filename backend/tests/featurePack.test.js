@@ -1,0 +1,5 @@
+import test from 'node:test'; import assert from 'node:assert/strict';
+import { createTaskStore, filterRecords, toCSV, runAI } from '../featurePack.js';
+test('tasks create/list/update preserves false/0/empty', () => { const s = createTaskStore(); const t = s.create(7, { title: 'T', done: false, estimate: 0, description: '' }); assert.equal(t.done, false); assert.equal(t.estimate, 0); assert.equal(s.list(7, {}).length, 1); assert.equal(s.list(8, {}).length, 0); });
+test('search/filter and CSV shapes', () => { const rows = [{ id: 1, title: 'Alpha', status: 'open' }, { id: 2, title: 'Beta', status: 'done' }]; assert.equal(filterRecords(rows, { q: 'alpha' }).length, 1); assert.match(toCSV(rows), /Alpha/); });
+test('AI fallback labelled deterministic', async () => { delete process.env.OPENROUTER_API_KEY; delete process.env.OPENAI_API_KEY; const r = await runAI('match-score', [{ name: 'A', status: 'active', followers: 0, engagement_rate: 0 }]); assert.equal(r.aiGenerated, false); assert.equal(r.provider, 'deterministic-fallback'); assert.ok(r.sections); });

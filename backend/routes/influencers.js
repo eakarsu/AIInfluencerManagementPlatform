@@ -12,12 +12,18 @@ router.get('/', async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
-    const countResult = await pool.query('SELECT COUNT(*) FROM influencers');
+    const where = []; const wp = [];
+    if (req.query.status) { wp.push(req.query.status); where.push(`status = $${wp.length}`); }
+    if (req.query.platform) { wp.push(req.query.platform); where.push(`platform = $${wp.length}`); }
+    if (req.query.category) { wp.push(req.query.category); where.push(`category = $${wp.length}`); }
+    if (req.query.q) { wp.push(`%${req.query.q}%`); where.push(`(name ILIKE $${wp.length} OR handle ILIKE $${wp.length} OR category ILIKE $${wp.length})`); }
+    const wsql = where.length ? ` WHERE ${where.join(' AND ')}` : '';
+    const countResult = await pool.query(`SELECT COUNT(*) FROM influencers${wsql}`, wp);
     const total = parseInt(countResult.rows[0].count);
 
     const result = await pool.query(
-      'SELECT * FROM influencers ORDER BY created_at DESC LIMIT $1 OFFSET $2',
-      [limit, offset]
+      `SELECT * FROM influencers${wsql} ORDER BY created_at DESC LIMIT $${wp.length + 1} OFFSET $${wp.length + 2}`,
+      [...wp, limit, offset]
     );
 
     if (!req.query.page && !req.query.limit) {

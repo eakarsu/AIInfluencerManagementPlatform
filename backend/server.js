@@ -46,6 +46,7 @@ import marketplaceRoutes from './routes/marketplace.js';
 import integrationRoutes from './routes/integrations.js';
 import customViewsRoutes from './routes/customViews.js';
 import governedCampaignRoutes from './routes/governedCampaigns.js';
+import featurePackRoutes from './routes/featurePack.js';
 import { authenticateToken } from './middleware/auth.js';
 
 const app = express();
@@ -99,6 +100,7 @@ app.use('/api/gap-no-file-upload-for-content-briefs', route_gap_no_file_upload_f
 app.use('/api/gap-no-notification-engine-0-references', route_gap_no_notification_engine_0_references);
 app.use('/api/gap-no-e-signature-for-contracts', route_gap_no_e_signature_for_contracts);
 
+app.use('/api/feature-pack', authenticateToken, featurePackRoutes);
 // Mount custom views BEFORE any 404 fallback
 app.use('/api/custom-views', customViewsRoutes);
 
